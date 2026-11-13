@@ -1,8 +1,10 @@
 package springlesson.controller;
 
-import springlesson.model.User;
-import springlesson.repository.UserRepository;
+import springlesson.dto.UserRequest;
+import springlesson.dto.UserResponse;
+import springlesson.service.UserService;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -10,25 +12,19 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserRepository repository;
+    private final UserService userService;
 
-    public UserController(UserRepository repository) {
-        this.repository = repository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-
     @GetMapping
-    public List<User> getUsers() {
-        return repository.findAll();
+    public List<UserResponse> getUsers() {
+        return userService.getAllUsers();
     }
 
     @PostMapping
-    public User registerUser(@RequestBody User user) {
-        return repository.save(user);
-    }
-
-    @GetMapping("/{id}")
-    public String getUser(@PathVariable long id) {
-        return "User:" + repository.existsById(id);
+    public UserResponse registerUser(@Valid @RequestBody UserRequest request) {
+        return userService.registerUser(request);
     }
 }
