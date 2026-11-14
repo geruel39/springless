@@ -1,15 +1,22 @@
 package springlesson.service;
 
+
+
 import springlesson.exception.ResourceNotFoundException;
 import springlesson.model.User;
 import springlesson.repository.UserRepository;
 import springlesson.dto.UserRequest;
 import springlesson.dto.UserResponse;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 @Service
@@ -95,12 +102,44 @@ public class UserService {
                         )
                 );
 
+        if (updates.isEmpty()) {
+            throw new IllegalArgumentException("No fields provided");
+        }
+
+        for (String field : updates.keySet()) {
+
+            if (!field.equals("name") && !field.equals("email")) {
+                throw new IllegalArgumentException(
+                        "Unsupported field: " + field
+                );
+            }
+        }
+
         if (updates.containsKey("name")) {
-            user.setName((String) updates.get("name"));
+            Object name = updates.get("name");
+
+            if (!(name instanceof String) || ((String) name).isBlank()) {
+                throw new IllegalArgumentException("Name cannot be empty");
+            }
+
+            if (((String) name).length() < 2 || ((String) name).length() > 50) {
+                throw new IllegalArgumentException(
+                        "Name must be between 2 and 50 characters"
+                );
+            }
+
+            user.setName((String) name);
         }
 
         if (updates.containsKey("email")) {
-            user.setEmail((String) updates.get("email"));
+            Object email = updates.get("email");
+
+            if (!(email instanceof String) ||
+                    !((String) email).matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                throw new IllegalArgumentException("Invalid email address");
+            }
+
+            user.setEmail((String) email);
         }
 
         User updatedUser = repository.save(user);
@@ -122,6 +161,34 @@ public class UserService {
                 );
 
         repository.delete(user);
+    }
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "email");
+
+    public Page<UserResponse> getUsersPaginated(int page, int size, String sortBy, String direction) {
+
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
+            throw new IllegalArgumentException("Invalid sort field");
+        }
+
+        Sort sort;
+
+        if (direction.equalsIgnoreCase("desc")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("asc")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new IllegalArgumentException("Invalid sort direction");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return repository.findAll(pageable)
+                .map(user -> new UserResponse(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail()
+                ));
     }
 
 }

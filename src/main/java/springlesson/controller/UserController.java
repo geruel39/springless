@@ -1,10 +1,11 @@
 package springlesson.controller;
 
-import org.springframework.http.ResponseEntity;
 import springlesson.dto.UserRequest;
 import springlesson.dto.UserResponse;
 import springlesson.service.UserService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -54,6 +55,19 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/page")
+    public Page<UserResponse> getUsersPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        return userService.getUsersPaginated(
+                page, size, sortBy, direction
+        );
+    }
+
 
 
 }
