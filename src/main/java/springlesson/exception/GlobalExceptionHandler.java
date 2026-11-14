@@ -12,8 +12,7 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationErrors(
-            MethodArgumentNotValidException exception) {
+    public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException exception) {
 
         List<String> errors = exception.getBindingResult()
                 .getFieldErrors()
@@ -30,6 +29,21 @@ public class GlobalExceptionHandler {
                                 errors
                         )
                 );
+    }
+
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleNotFound(ResourceNotFoundException exception) {
+
+        ErrorResponse response = new ErrorResponse(
+                404,
+                exception.getMessage(),
+                List.of(exception.getMessage())
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
     }
 }
 
