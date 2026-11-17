@@ -12,6 +12,9 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Account> accounts = new ArrayList<>();
 
+    @OneToOne(mappedBy = "user")
+    private UserProfile profile;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,5 +49,13 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public UserProfile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(UserProfile profile) {
+        this.profile = profile;
     }
 }
